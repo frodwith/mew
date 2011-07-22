@@ -1,0 +1,25 @@
+do sensible things when the ultimate prototype is not a Mew object
+    $obj->{key} should work if the prototype is really a blessed hash 
+        with a caveat that relying on this would break encapsulation,
+        but providing the functionality anyways for completeness
+    $obj->method should work if the prototype can('method').
+ 
+"pairs" operator that gives all properties, including proto chain
+    does not include foreign objects, even if they're hashes
+
+    for (pairs $obj) {
+        my ($k, $v) = @$_;
+    }
+
+more tests (pairs.t, isa.t, can.t with foreign objects)
+
+support as many perl special methods as possible
+    AUTOLOAD (different interface: passed name, self, args)
+    DESTROY  (need to call proto's destroy as well)
+    can      (same interface)
+    isa      (same interface)
+
+docs
+    mention that UNIVERSAL methods can screw with you
+
+proper dist-ifying (dzil)
