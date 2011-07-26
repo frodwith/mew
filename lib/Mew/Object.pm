@@ -58,6 +58,9 @@ sub AUTOLOAD {
 
 sub DESTROY {
     my $self = shift;
+    if (my $d = $self->{DESTROY}) {
+        $self->$d();
+    }
     Mew::proto($self, undef);
     Mew::props($self, undef);
     Mew::ties($self, undef);
