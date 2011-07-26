@@ -1,3 +1,5 @@
+# ABSTRACT: Prototypal Object System for Perl
+
 my %proto;
 my %ties;
 my %props;
@@ -10,10 +12,11 @@ my %props;
 
     use Scalar::Util qw(refaddr blessed);
     use Kwargs;
-    use Sub::Exporter -setup => {
-        exports => [qw(mew proto extend own)],
-        groups => {
-            default => [qw(mew proto extend own)],
+    use Sub::Exporter -setup => do {
+        my @defaults = qw(mew proto extend own pairs);
+        {
+            exports => \@defaults,
+            groups => { default => \@defaults }
         }
     };
 
@@ -23,7 +26,14 @@ my %props;
 
     sub proto {
         my $id = refaddr shift;
-        $proto{$id} = shift if @_ > 0;
+        if (@_ > 0) {
+            if (my $p = shift) {
+                $proto{$id} = $p;
+            }
+            else {
+                delete $proto{$id};
+            }
+        }
         $proto{$id};
     }
 
@@ -32,7 +42,7 @@ my %props;
         my $o = do { \my $o };
         bless $o, 'Mew::Object';
         my $id = refaddr $o;
-        $proto{$id} = $proto;
+        proto($o => $proto);
         $props{$id} = $props;
         tie my %h, 'Mew::Object::Hash', $o;
         $ties{$id} = \%h;
@@ -42,6 +52,16 @@ my %props;
     sub own {
         my ($obj, $name) = @_;
         exists $props{refaddr $obj}{$name};
+    }
+
+    sub pairs {
+        my $obj = shift;
+        my @pairs;
+        while ($obj) {
+            push @pairs, [$_, $obj->{$_}] for keys %$obj;
+            $obj = proto($obj);
+        }
+        return @pairs;
     }
 }
 
@@ -63,7 +83,7 @@ my %props;
     sub isa {
         my ($self, $class) = @_;
         return UNIVERSAL::isa($self, $class) unless Scalar::Util::blessed($self);
-        my $proto = $proto{Scalar::Util::refaddr $self};
+        my $proto = Mew::proto($self);
         return UNIVERSAL::isa($self, $class) unless $proto;
         return 1 if $proto eq $class;
         return $proto->isa($class) if $proto;
@@ -85,7 +105,7 @@ my %props;
                 return '';
             }
 
-            $self = $proto{Scalar::Util::refaddr $self};
+            $self = Mew::proto($self);
         }
         return '';
     }
@@ -100,7 +120,7 @@ my %props;
     sub DESTROY {
         my $self = shift;
         my $id = Scalar::Util::refaddr($self);
-        delete $proto{$id};
+        Mew::proto($self, undef);
         delete $ties{$id};
         delete $props{$id};
     }
@@ -127,10 +147,9 @@ my %props;
         my $props = $self->[0];
         $self = $self->[1];
         while ($self) {
-            my $id = refaddr $self;
-            my $h  = $props{$id};
+            my $h  = $props{refaddr $self};
             return $h->{$key} if exists $h->{$key};
-            $self = $proto{$id};
+            $self = Mew::proto($self);
         }
         return undef;
     }

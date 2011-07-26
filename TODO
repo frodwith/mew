@@ -4,14 +4,7 @@ do sensible things when the ultimate prototype is not a Mew object
         but providing the functionality anyways for completeness
     $obj->method should work if the prototype can('method').
  
-"pairs" operator that gives all properties, including proto chain
-    does not include foreign objects, even if they're hashes
-
-    for (pairs $obj) {
-        my ($k, $v) = @$_;
-    }
-
-more tests (pairs.t, isa.t, can.t with foreign objects)
+more tests (isa.t, can.t with foreign objects)
 
 support as many perl special methods as possible
     AUTOLOAD (different interface: passed name, self, args)
@@ -22,4 +15,4 @@ support as many perl special methods as possible
 docs
     mention that UNIVERSAL methods can screw with you
 
-proper dist-ifying (dzil)
+Make sure there's no ciruclar reference problems.
