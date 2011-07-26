@@ -6,13 +6,5 @@ do sensible things when the ultimate prototype is not a Mew object
  
 more tests (isa.t, can.t with foreign objects)
 
-support as many perl special methods as possible
-    AUTOLOAD (different interface: passed name, self, args)
-    DESTROY  (need to call proto's destroy as well)
-    can      (same interface)
-    isa      (same interface)
-
 docs
     mention that UNIVERSAL methods can screw with you
-
-Make sure there's no ciruclar reference problems.
