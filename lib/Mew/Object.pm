@@ -19,6 +19,13 @@ use overload
 
 our $AUTOLOAD;
 
+sub _autoload {
+    my ($self, $name) = @_;
+    return $self->can($name);
+}
+
+sub _destroy { }
+
 sub isa {
     my ($self, $class) = @_;
     return UNIVERSAL::isa($self, $class) unless Scalar::Util::blessed($self);
