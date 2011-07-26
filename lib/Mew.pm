@@ -6,7 +6,6 @@ use warnings;
 use strict;
 
 require Mew::Object;
-require Mew::Hash;
 
 use Scalar::Util qw(refaddr);
 use Kwargs;
@@ -52,8 +51,6 @@ sub extend {
     bless $o, 'Mew::Object';
     proto($o => $proto);
     props($o => $props);
-    tie my %h, 'Mew::Hash', $o;
-    ties( $o => \%h);
     return $o;
 }
 

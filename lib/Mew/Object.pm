@@ -5,9 +5,16 @@ use strict;
 
 require Scalar::Util;
 require Mew;
+require Mew::Hash;
 
 use overload
-    '%{}'    => sub { Mew::ties(shift) },
+    '%{}'    => sub {
+        my $self = shift;
+        Mew::ties($self) || do {
+            tie my %h, 'Mew::Hash', $self;
+            Mew::ties($self => \%h)
+        };
+    },
     fallback => 1;
 
 our $AUTOLOAD;
