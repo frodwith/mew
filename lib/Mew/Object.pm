@@ -5,14 +5,14 @@ use strict;
 
 require Scalar::Util;
 require Mew;
-require Mew::Hash;
+require Mew::Tied;
 
 use overload
     '%{}'    => sub {
         my $self = shift;
-        Mew::ties($self) || do {
-            tie my %h, 'Mew::Hash', $self;
-            Mew::ties($self => \%h)
+        $self->[2] ||= do {
+            tie my %h, 'Mew::Tied', $self;
+            \%h;
         };
     },
     fallback => 1;
@@ -44,16 +44,13 @@ sub can {
         return UNIVERSAL::can($o, $name)
             unless eval { $o->isa('Mew::Object') };
 
-        my $ex = eval { exists $o->{$name} };
-        # lookup can fail during global destruction, or if someone does
-        # something crazy like Sub::Delete-ing Mew::ties or something. If that
-        # happens, we'll just say "no, we can't."
-        return '' if $@;
-        if ($ex) {
-            my $prop = $o->{$name};
-            my $reft = Scalar::Util::reftype($prop);
-            return $prop if $reft && (
-                $reft eq 'CODE' || overload::Method($prop, '&{}')
+        my $p = Mew::props($o);
+
+        if (exists $p->{$name}) {
+            my $val     = $p->{$name};
+            my $reftype = Scalar::Util::reftype($val);
+            return $val if $reftype && (
+                $reftype eq 'CODE' || overload::Method($val, '&{}')
             );
             return '';
         }
@@ -61,7 +58,7 @@ sub can {
         $o = Mew::proto($o);
     }
 
-    if (my $loader = $self->{_autoload}) {
+    if (my $loader = Mew::get($self, '_autoload')) {
         my $loaded = $self->$loader($name);
         return $loaded if $loaded;
     }
@@ -83,12 +80,8 @@ sub AUTOLOAD {
 
 sub DESTROY {
     my $self = shift;
-    if (my $d = $self->can('_destroy')) {
-        $self->$d();
-    }
-    Mew::proto($self, undef);
-    Mew::props($self, undef);
-    Mew::ties($self, undef);
+    my $d = $self->can('_destroy');
+    $self->$d() if $d;
 }
 
 1;

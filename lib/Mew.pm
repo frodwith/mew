@@ -22,36 +22,17 @@ our $Object = extend(undef, {});
 
 sub mew { extend($Object, @_) };
 
-BEGIN {
-    my $mk = sub {
-        my $h = shift;
-        sub {
-            my $o = shift;
-            my $i = refaddr $o;
-            if (@_ > 0) {
-                if (my $v = shift) {
-                    $h->{$i} = $v;
-                }
-                else {
-                    delete $h->{$i};
-                }
-            }
-            return $h->{$i};
-        };
-    };
+sub props { $_[0]->[0] }
 
-    *proto = $mk->(\my %proto);
-    *props = $mk->(\my %props);
-    *ties  = $mk->(\my %ties);
+sub proto {
+    my $o = shift;
+    $o->[1] = shift if @_ > 0;
+    return $o->[1];
 }
 
 sub extend {
     my ($proto, $props) = kwn @_, 1;
-    my $o = do { \my $o };
-    bless $o, 'Mew::Object';
-    proto($o => $proto);
-    props($o => $props);
-    return $o;
+    bless [ $props, $proto ], 'Mew::Object';
 }
 
 sub own {
@@ -67,6 +48,16 @@ sub pairs {
         $obj = proto($obj);
     }
     return @pairs;
+}
+
+sub get {
+    my ($self, $key) = @_;
+    while ($self) {
+        my $h = props($self);
+        return $h->{$key} if exists $h->{$key};
+        $self = Mew::proto($self);
+    }
+    return undef;
 }
 
 1;

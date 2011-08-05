@@ -1,4 +1,4 @@
-package Mew::Hash;
+package Mew::Tied;
 
 use warnings;
 use strict;
@@ -14,13 +14,7 @@ sub TIEHASH {
 
 sub FETCH {
     my ($self, $key) = @_;
-    $self = $self->[1];
-    while ($self) {
-        my $h = Mew::props($self);
-        return $h->{$key} if exists $h->{$key};
-        $self = Mew::proto($self);
-    }
-    return undef;
+    Mew::get($self->[1], $key);
 }
 
 1;

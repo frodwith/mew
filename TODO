@@ -7,4 +7,6 @@ do sensible things when the ultimate prototype is not a Mew object
 more tests (isa.t, can.t with foreign objects)
 
 docs
-    mention that UNIVERSAL methods can screw with you
+    * mention that UNIVERSAL methods can screw with you
+    * talk about problems using the tied-hash syntax during the global
+      destruction phase

@@ -20,4 +20,8 @@ undef $o;
 
 is $d, 0;
 undef $b;
-is $d, 1;
+
+# This will be 2 now because it will be called for on $b's destruction, and
+# ALSO on $o's destruction ($b will no longer be referencing it as its
+# prototype).
+is $d, 2;
